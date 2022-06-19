@@ -1,0 +1,229 @@
+%% Muscle forces calculation in Gait0%
+clear
+clc
+
+
+%changing the moments from grood and suntay to ABAQUS global
+%% Defining angles
+teta1_hip=     90; %flexion(-)   %extention(+) %EF of hip
+teta2_hip=     0; %adduction(+) %Abduction(-) %VV of hip
+teta3_hip=     0;       %introt(+)    %Extrot(-) %IE of hip
+
+teta1_knee= 60; %EF of knee
+teta2_knee= 0; %VV of knee
+teta3_knee= 0; %IE of knee
+
+%% Defining moments
+
+moment1_hip=   0; %EF of hip       
+moment2_hip=   0;  %VV of hip    
+moment3_hip=   0; %IE of hip
+
+mhip_gs=[moment1_hip;moment2_hip;moment3_hip];
+%%
+moment1_knee=   -1.27;          
+moment2_knee=   0;       
+moment3_knee=   0; %IE of knee
+
+mknee_gs=[moment1_knee;moment2_knee;moment3_knee];
+%%
+moment1_ankle= 0; %EF of ankle
+
+mankle_gs=[moment1_ankle; 0 ; 0 ];
+%% U and TR matrix for hip
+%Lets define [U] matrix
+U1=[1 0 cosd(teta2_hip+90)
+   0  cosd(teta1_hip) sind(teta1_hip)*sind(teta2_hip+90)
+   0 -sind(teta1_hip) cosd(teta1_hip)*sind(teta2_hip+90)];
+
+%Lets define [TR1] matrix for changing hip to global
+
+TR1=[cosd(teta2_hip)*cosd(teta3_hip) -cosd(teta2_hip)*sind(teta3_hip) sind(teta2_hip)
+    sind(teta1_hip)*sind(teta2_hip)*cosd(teta3_hip)+cosd(teta1_hip)*sind(teta3_hip) -sind(teta1_hip)*sind(teta2_hip)*cosd(teta3_hip)+cosd(teta2_hip)*cosd(teta3_hip) -cosd(teta2_hip)*sind(teta1_hip) 
+    -cosd(teta1_hip)*sind(teta2_hip)*cosd(teta3_hip)+sind(teta1_hip)*sind(teta3_hip) cosd(teta1_hip)*sind(teta2_hip)*sind(teta3_hip)+sind(teta1_hip)*cosd(teta3_hip) cosd(teta1_hip)*cosd(teta2_hip)];
+%% U and TR matrix for knee
+%Lets define [U] matrix
+U2=[1  0                cosd(teta2_knee+90)
+    0  cosd(teta1_knee) sind(teta1_knee)*sind(teta2_knee+90)
+    0 -sind(teta1_knee) cosd(teta1_knee)*sind(teta2_knee+90)];
+
+%Lets define [TR1] matrix for changing hip to global
+
+TR2=[cosd(teta2_knee)*cosd(teta3_knee) -cosd(teta2_knee)*sind(teta3_knee) sind(teta2_knee)
+    sind(teta1_knee)*sind(teta2_knee)*cosd(teta3_knee)+cosd(teta1_knee)*sind(teta3_knee) -sind(teta1_knee)*sind(teta2_knee)*cosd(teta3_knee)+cosd(teta2_knee)*cosd(teta3_knee) -cosd(teta2_knee)*sind(teta1_knee) 
+    -cosd(teta1_knee)*sind(teta2_knee)*cosd(teta3_knee)+sind(teta1_knee)*sind(teta3_knee) cosd(teta1_knee)*sind(teta2_knee)*sind(teta3_knee)+sind(teta1_knee)*cosd(teta3_knee) cosd(teta1_knee)*cosd(teta2_knee)];
+
+%% calculating moments in global 
+mhip_global=U1*mhip_gs;
+mknee_global=TR1*U2*mknee_gs;
+mankle_global=TR1*TR2*mankle_gs;
+mkneetransformed=mknee_global*61.9*9.81*100;
+mhiptransformed=mhip_global*61.9*9.81*100;
+mankletransformed=moment1_ankle*61.9*9.81*100;
+
+%% ________________________________________________________________________
+f_add_brev_r1=0;
+f_add_long_r2=0;	      
+f_add_mag1_r3=0;	      
+f_add_mag2_r4=0;	      
+f_add_mag3_r5=0;	      
+f_bifemlh_r6=150;           
+f_gem_r7    =0;     
+f_glut_max1_r8=0;      
+f_glut_max2_r9=0;	      
+f_glut_max3_r10=0;	      
+f_glut_med1_r11=0;	      
+f_glut_med2_r12=0;     
+f_glut_med3_r13=0;      
+f_glut_min1_r14=0;	      
+f_glut_min2_r15=0;      
+f_glut_min3_r16=0;	      
+f_grac_r17=0;	          
+f_iliacus_r18=0;	          
+f_pect_r19=0;	          
+f_peri_r20=0;	          
+f_psoas_r21=0;	          
+f_quad_fem_r22=0;	      
+f_rect_fem_r23=0;      
+f_sar_r24=0;             
+f_semimem_r25=0;         
+f_semiten_r26=0;         
+f_tfl_r27=0;	          
+f_bifemsh_r28=100;	          
+f_vas_int_r29=150;	          
+f_vas_lat_r30=150;	          
+f_vas_med_r31=150;
+f_GASL_r32=0;
+f_GASM_r33=0;     
+f_SOLT_r34=0;   
+
+
+%% Obtained pcsa from OPENSIM 
+pcsa_add_brev_r1=    429/0.6;
+pcsa_add_long_r2=    627/0.6;	      
+pcsa_add_mag1_r3=    381/0.6;      
+pcsa_add_mag2_r4=    343/0.6;	      
+pcsa_add_mag3_r5=    488/0.6;	      
+pcsa_bifemlh_r6=     896/0.6;           
+pcsa_gem_r7=         164/0.6;
+pcsa_glut_max1_r8=   (573+57.3)/0.6;      
+pcsa_glut_max2_r9=   (819+81.9)/0.6;	      
+pcsa_glut_max3_r10=  (552+55.2)/0.6;	      
+pcsa_glut_med1_r11=  (819)/0.6; %checked	      
+pcsa_glut_med2_r12=  (573)/0.6;     
+pcsa_glut_med3_r13=  (653+65.3)/0.6;      
+pcsa_glut_min1_r14=  (270+54)/0.6; 	      
+pcsa_glut_min2_r15=  (285+57)/0.6;      
+pcsa_glut_min3_r16=  (323+64.6)/0.6;  %checked	
+pcsa_grac_r17=       162/0.6;	          
+pcsa_iliacus_r18=    1073/0.6;	          
+pcsa_pect_r19=       266/0.6;	          
+pcsa_peri_r20=       444/0.6;	          
+pcsa_psoas_r21=      1113/0.6;  %checked	          
+pcsa_quad_fem_r22=   381/0.6;	      
+pcsa_rect_fem_r23=   (1169+116.9)/0.6;      
+pcsa_sar_r24=        156.0/0.6;             
+pcsa_semimem_r25=    1288.0/0.6;         
+pcsa_semiten_r26=    410.0/0.6;  %checked        
+pcsa_tfl_r27=        233/0.6;	           
+pcsa_bifemsh_r28=    804.0/0.6;	          
+pcsa_vas_int_r29=    (2365-136.5)/0.6;	          
+pcsa_vas_lat_r30=    2871/0.6;	          
+pcsa_vas_med_r31=    (1294.0+700)/0.6;   %checked    
+pcsa_SOLT_r34=       (2088.240)/0.6;   
+
+
+
+
+
+%%
+x0=[f_add_brev_r1;
+f_add_long_r2;	      
+f_add_mag1_r3;	      
+f_add_mag2_r4;	      
+f_add_mag3_r5;	      
+f_bifemlh_r6;           
+f_gem_r7    ;     
+f_glut_max1_r8;      
+f_glut_max2_r9;	      
+f_glut_max3_r10;	      
+f_glut_med1_r11;	      
+f_glut_med2_r12;     
+f_glut_med3_r13;      
+f_glut_min1_r14;	      
+f_glut_min2_r15;      
+f_glut_min3_r16;	      
+f_grac_r17;	          
+f_iliacus_r18;	          
+f_pect_r19;	          
+f_peri_r20;	          
+f_psoas_r21;	          
+f_quad_fem_r22;	      
+f_rect_fem_r23;      
+f_sar_r24;             
+f_semimem_r25;         
+f_semiten_r26;         
+f_tfl_r27;	          
+f_bifemsh_r28;	          
+f_vas_int_r29;	          
+f_vas_lat_r30;	          
+f_vas_med_r31;    
+f_SOLT_r34 ];  
+
+%% provious iteration force
+    
+    
+previousforce=zeros(32,1);
+
+lb=-previousforce;
+
+
+%%  ub
+ub=0.8*[pcsa_add_brev_r1;
+pcsa_add_long_r2;	      
+pcsa_add_mag1_r3;      
+pcsa_add_mag2_r4;	      
+pcsa_add_mag3_r5;	      
+pcsa_bifemlh_r6;           
+pcsa_gem_r7;
+pcsa_glut_max1_r8;      
+pcsa_glut_max2_r9;	      
+pcsa_glut_max3_r10;	      
+pcsa_glut_med1_r11;	      
+pcsa_glut_med2_r12;     
+pcsa_glut_med3_r13;      
+pcsa_glut_min1_r14;	      
+pcsa_glut_min2_r15;      
+pcsa_glut_min3_r16;	      
+pcsa_grac_r17;	          
+pcsa_iliacus_r18;	          
+pcsa_pect_r19;	          
+pcsa_peri_r20;	          
+pcsa_psoas_r21;	          
+pcsa_quad_fem_r22;	      
+pcsa_rect_fem_r23;      
+pcsa_sar_r24;             
+pcsa_semimem_r25;         
+pcsa_semiten_r26;         
+pcsa_tfl_r27;	          
+pcsa_bifemsh_r28;	          
+pcsa_vas_int_r29;	          
+pcsa_vas_lat_r30;	          
+pcsa_vas_med_r31;    
+pcsa_SOLT_r34];    
+
+maxmus=ub;
+maxmus(8:10,2)=ub(8)+ub(9)+ub(10);
+maxmus(11:13,2)=ub(11)+ub(12)+ub(13);
+
+
+ub=ub-previousforce;
+
+
+
+kneemomentarms=-[ 23.78	-6.50	-4.02
+24.66	1.61	1.34
+-35.47	1.46	-34.81
+-39.95	1.96	42.54
+26.26	-4.36	-4.68
+-30.12	0.31	43.99];
